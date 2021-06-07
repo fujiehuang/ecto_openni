@@ -57,7 +57,7 @@ DeviceKinect::DeviceKinect (xn::Context& context, const xn::NodeInfo& device_nod
   // device specific initialization
   XnStatus status;
 
-  unique_lock<mutex> image_lock(image_mutex_);
+  boost::unique_lock<boost::mutex> image_lock(image_mutex_);
   // set kinect specific format. Thus input = uncompressed Bayer, output = grayscale = bypass = bayer
   status = image_generator_.SetIntProperty ("InputFormat", 6);
   if (status != XN_STATUS_OK)
@@ -69,7 +69,7 @@ DeviceKinect::DeviceKinect (xn::Context& context, const xn::NodeInfo& device_nod
     THROW_OPENNI_EXCEPTION ("Failed to set image pixel format to 8bit-grayscale. Reason: %s", xnGetStatusString (status));
   image_lock.unlock ();
 
-  lock_guard<mutex> depth_lock(depth_mutex_);
+  boost::lock_guard<boost::mutex> depth_lock(depth_mutex_);
   // RegistrationType should be 2 (software) for Kinect, 1 (hardware) for PS
   status = depth_generator_.SetIntProperty ("RegistrationType", 2);
   if (status != XN_STATUS_OK)

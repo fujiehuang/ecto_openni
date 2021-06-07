@@ -56,7 +56,7 @@ DevicePrimesense::DevicePrimesense (xn::Context& context, const xn::NodeInfo& de
   setImageOutputMode (getDefaultImageMode ());
   setIROutputMode (getDefaultIRMode ());
 
-  unique_lock<mutex> image_lock(image_mutex_);
+  boost::unique_lock<boost::mutex> image_lock(image_mutex_);
   XnStatus status = image_generator_.SetIntProperty ("InputFormat", 5);
   if (status != XN_STATUS_OK)
     THROW_OPENNI_EXCEPTION ("Error setting the image input format to Uncompressed YUV422. Reason: %s", xnGetStatusString (status));
@@ -67,7 +67,7 @@ DevicePrimesense::DevicePrimesense (xn::Context& context, const xn::NodeInfo& de
 
   image_lock.unlock ();
 
-  lock_guard<mutex> depth_lock(depth_mutex_);
+  boost::lock_guard<boost::mutex> depth_lock(depth_mutex_);
   status = depth_generator_.SetIntProperty ("RegistrationType", 1);
   if (status != XN_STATUS_OK)
     THROW_OPENNI_EXCEPTION ("Error setting the registration type. Reason: %s", xnGetStatusString (status));

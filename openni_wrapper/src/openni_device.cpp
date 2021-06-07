@@ -250,7 +250,7 @@ void OpenNIDevice::Init ()
   // set Depth resolution here only once... since no other mode for kinect is available -> deactivating setDepthResolution method!
   if (hasDepthStream ())
   {
-    unique_lock<mutex> depth_lock (depth_mutex_);
+    boost::unique_lock<boost::mutex> depth_lock (depth_mutex_);
     XnStatus status = depth_generator_.GetRealProperty ("ZPPS", pixel_size);
     if (status != XN_STATUS_OK)
       THROW_OPENNI_EXCEPTION ("reading the pixel size of IR camera failed. Reason: %s", xnGetStatusString (status));
@@ -284,13 +284,13 @@ void OpenNIDevice::Init ()
 
   if (hasImageStream ())
   {
-    lock_guard<mutex> image_lock (image_mutex_);
+    boost::lock_guard<boost::mutex> image_lock (image_mutex_);
     image_thread_ = boost::thread (&OpenNIDevice::ImageDataThreadFunction, this);
   }
 
   if (hasIRStream ())
   {
-    lock_guard<mutex> ir_lock (ir_mutex_);
+    boost::lock_guard<boost::mutex> ir_lock (ir_mutex_);
     ir_thread_ = boost::thread (&OpenNIDevice::IRDataThreadFunction, this);
   }
 }
@@ -299,7 +299,7 @@ void OpenNIDevice::startImageStream ()
 {
   if (hasImageStream ())
   {
-    lock_guard<mutex> image_lock (image_mutex_);
+    boost::lock_guard<boost::mutex> image_lock (image_mutex_);
     if (!image_generator_.IsGenerating ())
     {
       XnStatus status = image_generator_.StartGenerating ();
@@ -315,7 +315,7 @@ void OpenNIDevice::stopImageStream ()
 {
   if (hasImageStream ())
   {
-    lock_guard<mutex> image_lock (image_mutex_);
+    boost::lock_guard<boost::mutex> image_lock (image_mutex_);
     if (image_generator_.IsGenerating ())
     {
       XnStatus status = image_generator_.StopGenerating ();
@@ -331,7 +331,7 @@ void OpenNIDevice::startDepthStream ()
 {
   if (hasDepthStream ())
   {
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     if (!depth_generator_.IsGenerating ())
     {
       XnStatus status = depth_generator_.StartGenerating ();
@@ -348,7 +348,7 @@ void OpenNIDevice::stopDepthStream ()
 {
   if (hasDepthStream ())
   {
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     if (depth_generator_.IsGenerating ())
     {
       XnStatus status = depth_generator_.StopGenerating ();
@@ -365,7 +365,7 @@ void OpenNIDevice::startIRStream ()
 {
   if (hasIRStream ())
   {
-    lock_guard<mutex> ir_lock (ir_mutex_);
+    boost::lock_guard<boost::mutex> ir_lock (ir_mutex_);
     if (!ir_generator_.IsGenerating ())
     {
       XnStatus status = ir_generator_.StartGenerating ();
@@ -384,7 +384,7 @@ void OpenNIDevice::stopIRStream ()
 {
   if (hasIRStream ())
   {
-    lock_guard<mutex> ir_lock (ir_mutex_);
+    boost::lock_guard<boost::mutex> ir_lock (ir_mutex_);
     if (ir_generator_.IsGenerating ())
     {
       XnStatus status = ir_generator_.StopGenerating ();
@@ -399,39 +399,39 @@ void OpenNIDevice::stopIRStream ()
 
 bool OpenNIDevice::isImageStreamRunning () const throw ()
 {
-  lock_guard<mutex> image_lock (image_mutex_);
+  boost::lock_guard<boost::mutex> image_lock (image_mutex_);
   return ( image_generator_.IsValid () && image_generator_.IsGenerating ());
 }
 
 bool OpenNIDevice::isDepthStreamRunning () const throw ()
 {
-  lock_guard<mutex> depth_lock (depth_mutex_);
+  boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
   return ( depth_generator_.IsValid () && depth_generator_.IsGenerating ());
 }
 
 bool OpenNIDevice::isIRStreamRunning () const throw ()
 {
-  lock_guard<mutex> ir_lock (ir_mutex_);
+  boost::lock_guard<boost::mutex> ir_lock (ir_mutex_);
   return ( ir_generator_.IsValid () && ir_generator_.IsGenerating ());
 }
 
 bool OpenNIDevice::hasImageStream () const throw ()
 {
-  lock_guard<mutex> lock (image_mutex_);
+  boost::lock_guard<boost::mutex> lock (image_mutex_);
   return image_generator_.IsValid ();
   //return (available_image_modes_.size() != 0);
 }
 
 bool OpenNIDevice::hasDepthStream () const throw ()
 {
-  lock_guard<mutex> lock (depth_mutex_);
+  boost::lock_guard<boost::mutex> lock (depth_mutex_);
   return depth_generator_.IsValid ();
   //return (available_depth_modes_.size() != 0);
 }
 
 bool OpenNIDevice::hasIRStream () const throw ()
 {
-  lock_guard<mutex> ir_lock (ir_mutex_);
+  boost::lock_guard<boost::mutex> ir_lock (ir_mutex_);
   return ir_generator_.IsValid ();
 }
 
@@ -439,8 +439,8 @@ void OpenNIDevice::setDepthRegistration (bool on_off)
 {
   if (hasDepthStream () && hasImageStream())
   {
-    lock_guard<mutex> image_lock (image_mutex_);
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> image_lock (image_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     if (on_off && !depth_generator_.GetAlternativeViewPointCap ().IsViewPointAs (image_generator_))
     {
       if (depth_generator_.GetAlternativeViewPointCap ().IsViewPointSupported (image_generator_))
@@ -471,8 +471,8 @@ bool OpenNIDevice::isDepthRegistered () const throw ()
     xn::DepthGenerator& depth_generator = const_cast<xn::DepthGenerator&>(depth_generator_);
     xn::ImageGenerator& image_generator = const_cast<xn::ImageGenerator&>(image_generator_);
 
-    lock_guard<mutex> image_lock (image_mutex_);
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> image_lock (image_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     return (depth_generator.GetAlternativeViewPointCap ().IsViewPointAs (image_generator));
   }
   return false;
@@ -480,8 +480,8 @@ bool OpenNIDevice::isDepthRegistered () const throw ()
 
 bool OpenNIDevice::isDepthRegistrationSupported () const throw ()
 {
-  lock_guard<mutex> image_lock (image_mutex_);
-  lock_guard<mutex> depth_lock (depth_mutex_);
+  boost::lock_guard<boost::mutex> image_lock (image_mutex_);
+  boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
 
   xn::ImageGenerator& image_generator = const_cast<xn::ImageGenerator&> (image_generator_);
   return ( depth_generator_.IsValid() && image_generator_.IsValid() && depth_generator_.GetAlternativeViewPointCap().IsViewPointSupported(image_generator));
@@ -489,8 +489,8 @@ bool OpenNIDevice::isDepthRegistrationSupported () const throw ()
 
 bool OpenNIDevice::isSynchronizationSupported () const throw ()
 {
-  lock_guard<mutex> image_lock (image_mutex_);
-  lock_guard<mutex> depth_lock (depth_mutex_);
+  boost::lock_guard<boost::mutex> image_lock (image_mutex_);
+  boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
   return ( depth_generator_.IsValid() && image_generator_.IsValid() && depth_generator_.IsCapabilitySupported (XN_CAPABILITY_FRAME_SYNC));
 }
 
@@ -498,8 +498,8 @@ void OpenNIDevice::setSynchronization (bool on_off)
 {
   if (hasDepthStream () && hasImageStream())
   {
-    lock_guard<mutex> image_lock (image_mutex_);
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> image_lock (image_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     XnStatus status;
 
     if (on_off && !depth_generator_.GetFrameSyncCap ().IsFrameSyncedWith (image_generator_))
@@ -523,8 +523,8 @@ bool OpenNIDevice::isSynchronized () const throw ()
 {
   if (hasDepthStream () && hasImageStream())
   {
-    lock_guard<mutex> image_lock (image_mutex_);
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> image_lock (image_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     xn::DepthGenerator& depth_generator = const_cast<xn::DepthGenerator&>(depth_generator_);
     xn::ImageGenerator& image_generator = const_cast<xn::ImageGenerator&>(image_generator_);
     return (depth_generator.GetFrameSyncCap ().CanFrameSyncWith (image_generator) && depth_generator.GetFrameSyncCap ().IsFrameSyncedWith (image_generator));
@@ -535,7 +535,7 @@ bool OpenNIDevice::isSynchronized () const throw ()
 
 bool OpenNIDevice::isDepthCroppingSupported () const throw ()
 {
-  lock_guard<mutex> depth_lock (depth_mutex_);
+  boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
   return ( image_generator_.IsValid() && depth_generator_.IsCapabilitySupported (XN_CAPABILITY_CROPPING) );
 }
 
@@ -543,7 +543,7 @@ bool OpenNIDevice::isDepthCropped () const
 {
   if (hasDepthStream ())
   {
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     XnCropping cropping;
     xn::DepthGenerator& depth_generator = const_cast<xn::DepthGenerator&>(depth_generator_);
     XnStatus status = depth_generator.GetCroppingCap ().GetCropping (cropping);
@@ -559,7 +559,7 @@ void OpenNIDevice::setDepthCropping (unsigned x, unsigned y, unsigned width, uns
 {
   if (hasDepthStream ())
   {
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     XnCropping cropping;
     cropping.nXOffset = x;
     cropping.nYOffset = y;
@@ -580,7 +580,7 @@ void OpenNIDevice::ImageDataThreadFunction ()
   while (true)
   {
     // lock before checking running flag
-    unique_lock<mutex> image_lock (image_mutex_);
+    boost::unique_lock<boost::mutex> image_lock (image_mutex_);
     if (quit_)
       return;
     image_condition_.wait (image_lock);
@@ -607,7 +607,7 @@ void OpenNIDevice::DepthDataThreadFunction ()
   while (true)
   {
     // lock before checking running flag
-    unique_lock<mutex> depth_lock (depth_mutex_);
+    boost::unique_lock<boost::mutex> depth_lock (depth_mutex_);
     if (quit_)
       return;
     depth_condition_.wait (depth_lock);
@@ -634,7 +634,7 @@ void OpenNIDevice::IRDataThreadFunction ()
   while (true)
   {
     // lock before checking running flag
-    unique_lock<mutex> ir_lock (ir_mutex_);
+    boost::unique_lock<boost::mutex> ir_lock (ir_mutex_);
     if (quit_)
       return;
     ir_condition_.wait (ir_lock);
@@ -885,7 +885,7 @@ void OpenNIDevice::setImageOutputMode (const XnMapOutputMode& output_mode)
 {
   if (hasImageStream ())
   {
-    lock_guard<mutex> image_lock (image_mutex_);
+    boost::lock_guard<boost::mutex> image_lock (image_mutex_);
     XnStatus status = image_generator_.SetMapOutputMode (output_mode);
     if (status != XN_STATUS_OK)
       THROW_OPENNI_EXCEPTION ("Could not set image stream output mode to %dx%d@%d. Reason: %s", output_mode.nXRes, output_mode.nYRes, output_mode.nFPS, xnGetStatusString (status));
@@ -898,7 +898,7 @@ void OpenNIDevice::setDepthOutputMode (const XnMapOutputMode& output_mode)
 {
   if (hasDepthStream ())
   {
-    lock_guard<mutex> depth_lock (depth_mutex_);
+    boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
     XnStatus status = depth_generator_.SetMapOutputMode (output_mode);
     if (status != XN_STATUS_OK)
       THROW_OPENNI_EXCEPTION ("Could not set depth stream output mode to %dx%d@%d. Reason: %s", output_mode.nXRes, output_mode.nYRes, output_mode.nFPS, xnGetStatusString (status));
@@ -911,7 +911,7 @@ void OpenNIDevice::setIROutputMode (const XnMapOutputMode& output_mode)
 {
   if (hasIRStream ())
   {
-    lock_guard<mutex> ir_lock (ir_mutex_);
+    boost::lock_guard<boost::mutex> ir_lock (ir_mutex_);
     XnStatus status = ir_generator_.SetMapOutputMode (output_mode);
     if (status != XN_STATUS_OK)
       THROW_OPENNI_EXCEPTION ("Could not set IR stream output mode to %dx%d@%d. Reason: %s", output_mode.nXRes, output_mode.nYRes, output_mode.nFPS, xnGetStatusString (status));
@@ -928,7 +928,7 @@ XnMapOutputMode OpenNIDevice::getImageOutputMode () const
     THROW_OPENNI_EXCEPTION ("Device does not provide an image stream");
 
   XnMapOutputMode output_mode;
-  lock_guard<mutex> image_lock (image_mutex_);
+  boost::lock_guard<boost::mutex> image_lock (image_mutex_);
   XnStatus status = image_generator_.GetMapOutputMode (output_mode);
   if (status != XN_STATUS_OK)
     THROW_OPENNI_EXCEPTION ("Could not get image stream output mode. Reason: %s", xnGetStatusString (status));
@@ -941,7 +941,7 @@ XnMapOutputMode OpenNIDevice::getDepthOutputMode () const
     THROW_OPENNI_EXCEPTION ("Device does not provide a depth stream");
 
   XnMapOutputMode output_mode;
-  lock_guard<mutex> depth_lock (depth_mutex_);
+  boost::lock_guard<boost::mutex> depth_lock (depth_mutex_);
   XnStatus status = depth_generator_.GetMapOutputMode (output_mode);
   if (status != XN_STATUS_OK)
     THROW_OPENNI_EXCEPTION ("Could not get depth stream output mode. Reason: %s", xnGetStatusString (status));
@@ -954,7 +954,7 @@ XnMapOutputMode OpenNIDevice::getIROutputMode () const
     THROW_OPENNI_EXCEPTION ("Device does not provide an IR stream");
 
   XnMapOutputMode output_mode;
-  lock_guard<mutex> ir_lock (ir_mutex_);
+  boost::lock_guard<boost::mutex> ir_lock (ir_mutex_);
   XnStatus status = ir_generator_.GetMapOutputMode (output_mode);
   if (status != XN_STATUS_OK)
     THROW_OPENNI_EXCEPTION ("Could not get IR stream output mode. Reason: %s", xnGetStatusString (status));

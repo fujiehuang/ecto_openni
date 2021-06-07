@@ -55,7 +55,7 @@ DeviceXtionPro::DeviceXtionPro (xn::Context& context, const xn::NodeInfo& device
   setDepthOutputMode (getDefaultDepthMode ());
   setIROutputMode (getDefaultIRMode ());
 
-  lock_guard<mutex> depth_lock(depth_mutex_);
+  boost::lock_guard<boost::mutex> depth_lock(depth_mutex_);
   XnStatus status = depth_generator_.SetIntProperty ("RegistrationType", 1);
   if (status != XN_STATUS_OK)
     THROW_OPENNI_EXCEPTION ("Error setting the registration type. Reason: %s", xnGetStatusString (status));
