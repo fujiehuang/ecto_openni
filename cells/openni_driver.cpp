@@ -479,7 +479,7 @@ namespace ecto_openni
       if (!image.empty() || !*latched_)
       {
         if (!image.empty())
-          cv::cvtColor(image, image, CV_RGB2BGR);
+          cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
         *image_ = image;
       }
       *focal_length_depth_ = device_->getDepthFocalLength();
@@ -487,12 +487,12 @@ namespace ecto_openni
 
     // Calibration matrices
     cv::Matx33f K_image, K_depth;
-    K_image = 0;
+    //K_image = 0;
     K_image(0, 0) = K_image(1, 1) = *focal_length_image_;
     K_image(0, 2) = image_->size().width / 2 + 0.5;
     K_image(1, 2) = image_->size().height / 2 + 0.5;
     K_image(2, 2) = 1;
-    K_depth = 0;
+    //K_depth = 0;
     cv::Mat(K_image).copyTo(*K_image_);
     K_depth(0, 0) = K_depth(1, 1) = *focal_length_depth_;
     K_depth(0, 2) = depth_->size().width / 2 + 0.5;
